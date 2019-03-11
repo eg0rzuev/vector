@@ -12,7 +12,7 @@
     error_          (VECTOR_UNDERFLOW),
     hash_           (0)
     {};
-
+// const size
 Vector::Vector(size_t size):
     elemNum_        (0),
     capacity_       (size),
@@ -33,7 +33,7 @@ Vector::Vector(const Vector& rhv):
     elemNum_        (rhv.elemNum_),
     capacity_       (rhv.capacity_),
     canary1_        (rhv.canary1_),//QUESTION: do I have to set canary1_ like in rhv or CANARY_ONE ?
-    canary2_        (rhv.canary2_),
+    canary2_        (rhv.canary2_), // answer: you should set canary1_ instead of const value
     error_          (rhv.error_),
     hash_           (rhv.hash_)
 
@@ -76,15 +76,21 @@ Vector& Vector::operator= (Vector& rhv)
     return *this;
 }
 
+
+// add this operator
+const vctrElemT & Vector::operator[](const size_t index) const
+
 vctrElemT& Vector::operator[] (size_t index)
 {
 
     return data_[index];
 }
 
+
+// use constants where it is possible
 int Vector::push(vctrElemT element)
 {
-
+    // answer::: Yes, you do
     if(capacity_ <= elemNum_)//QUESTION do i need to resize if i.e.capacity_ is 1000 and elemNum is 10?
     {
         resize();
@@ -146,14 +152,14 @@ int Vector::VectorOk()
 
     return 0;
 }
-
+// use more complex control sum
 unsigned int Vector::Hash()
 {
     unsigned int hash = 0;
 
     for(int i = 0; i < elemNum_; i++)
     {
-        hash += data_[i];
+        hash += data_[i]; // too simple
     }
 
     return hash;
@@ -161,6 +167,10 @@ unsigned int Vector::Hash()
 
 int Vector::dump()
 {
+ // if you use here many std::cout & staff llike that you can put here
+    using std::cout;
+    using std::endl;
+ 
     std::cout << std::endl;
     std::cout << "*_* ''''''_____VECTOR_DUMP_____'''''' *_*" << std::endl;
     std::cout << std::endl;
