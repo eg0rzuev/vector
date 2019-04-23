@@ -1,15 +1,15 @@
 #include <iostream>
 #include <vector>
-#include "vectorZ.h"
-
+#include "vectorZ1.h"
+//new tests required 
 int main() {
-	Vector C(2);
+	Vector<int> C(2);
 	C.push(33);
 	C.push(22);
-	Vector A(2);
+	Vector<int> A(2);
 	A.push(1);
 	A.push(2);
-	Vector D(2);
+	Vector <int> D(2);
 	D.push(1);
 	D.push(20);
 	C = D + A;
@@ -24,11 +24,11 @@ int main() {
 	//std::vector<int> x(20);
 	//x[3] = 4;
 
-    Vector X(2), Y(3);
+    Vector<int> X(2), Y(3);
    // Y.push(10);
     X.push(10);
-    Vector Z2(10);
-    Vector Z1(Z2);
+    Vector<int> Z2(10);
+    Vector<int> Z1(Z2);
     std::cout << X.pop() << " is popped" << std::endl;
    // std::cout << "if X equal to Y?   " << (X == Y) << std::endl;
     X.push(20);
@@ -61,7 +61,7 @@ int main() {
     std::cout << X.peek() << " is peeked" << std::endl;
     //X.peek() = 3;	
     //X.pop() =  3;
-    Vector V(X);
+    Vector<int> V(X);
     for(int i = 0; i < 10; i++)
     {
         V.push(i);
@@ -83,11 +83,11 @@ int main() {
     {
 	//
     }
-    Vector Z(V);
+    Vector<int> Z(V);
 	Z[0] = 3230;
 	Z.push(3);
-    Vector* z;
-    z = NEW Vector;
+    Vector<int>* z;
+    z = NEW Vector<int>;
     z -> push(33);   
     z -> push(40);
     z -> push(100);  
@@ -96,5 +96,10 @@ int main() {
 	std::cout << z -> pop() << " is popped" << std::endl;
     }	
     DELETE(z);
+
+    Vector<std::string> Str(10);
+    Str.push("Hello");
+    Str.push("world");
+    std::cout << Str.pop() << std::endl;
 	return 0;
 }

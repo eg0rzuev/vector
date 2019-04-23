@@ -1,7 +1,110 @@
 //
 // Created by egor on 3/9/19.
-//
-#include "vectorZ.h"
+// todo read about class and typename difference
+
+#ifndef VECTORZUI_VECTORZ_H
+#define VECTORZUI_VECTORZ_H
+#include <iostream>
+#include <fstream>
+#include <cmath>
+#include <string> 
+
+#define NEW    new   (__func__, __LINE__)
+#define DELETE_BR(p)                                                                                \
+    do{                                                                                             \
+        fout << "Delete[] called in function " << __func__ << ", line is " << __LINE__ << " \n";    \
+        delete[] p					                                       ;    \
+    }while(0)	    
+
+#define DELETE(p)                                                                                 \
+    do{                                                                                           \
+        fout << "Delete called in function " << __func__ << ", line is " << __LINE__ << " \n";    \
+        delete p					                                     ;    \
+    }while(0)											   
+   
+
+#define CHECK_ERR(CONDITION, ERROR)  \
+    do{                              \
+        if((CONDITION))              \
+        {                            \
+            error_ |= ((ERROR));     \
+            return (ERROR);          \
+        }                            \
+    }while (0)
+
+static std::ofstream fout("Log.txt");
+enum PARAMS
+{
+    DEFAULT_SIZE = 10,
+    MULTIPLIER   = 2,
+    BIG_DIFFER   = 100,
+    BRACK_USED   = 1 << 7 //128
+};
+enum ERRORS
+{
+    VECTOR_UNDERFLOW    = 1 << 0, //1
+    VECTOR_OVERFLOW     = 1 << 1, //2
+    VECTOR_OUTTA_MEMORY = 1 << 2, //4
+    BIRD_DEAD           = 1 << 3, //8
+    NEGATIVE_ELEM_NUM   = 1 << 4, //16
+    NEGATIVE_CAPACITY   = 1 << 5, //32
+    VECTOR_WRONG_HASH   = 1 << 6  //64
+
+};
+
+enum BIRDS
+{
+    CANARY_ONE = 282,
+    CANARY_TWO = 202
+};
+
+template <class T> class Vector
+{
+    public:
+        Vector      ();
+        Vector      (size_t);
+        Vector      (const Vector&);
+	Vector      (Vector&&);
+        ~Vector     ();
+
+        int                     push                (T);
+        const T         pop                 ();
+        const T         peek                ();
+
+        T&             operator []   (size_t);
+        const T&       operator []   (const  size_t)  const;
+        Vector&                operator =    (const Vector&);
+	void                   operator =    (      Vector&&);
+        bool                   operator ==   (const Vector&) const;
+        Vector&                operator +=   (const Vector&);
+        Vector                 operator +    (const Vector&);
+	Vector&  	       operator *=   (const Vector&);
+	Vector		       operator *    (const Vector&);	
+    private:
+        size_t              elemNum_;
+        size_t              capacity_;
+
+
+        int                 canary1_;
+        T*                  data_;
+        int                 canary2_;
+
+        int                 error_;
+        uint64_t            hash_;
+        uint64_t            Hash        ();
+        int                 VectorOk    ();
+        int                 resize      ();
+        int                 resizeDown  ();
+        void                swap        (Vector&);
+        int                 dump        ();
+
+};
+    void* operator new     (size_t size, const char* func, int line);
+    void* operator new[]   (size_t size, const char* func, int line);
+    void  operator delete  (void* p) noexcept;
+    void  operator delete[](void* p) noexcept;
+
+
 void* operator new[](size_t size, const char* func,  int line)
 {
     void* ptr = calloc(1, size);
@@ -23,7 +126,6 @@ void operator delete(void* p)   noexcept
 void operator delete[](void* p) noexcept
 {
     free(p);
-   // fout << "Delete called in function "<< func << ", line is " << line << " \n";
 }
           
 void operator delete[](void* p, const char* msg)
@@ -32,7 +134,6 @@ void operator delete[](void* p, const char* msg)
 	free(p);
 }
 
-// operator new(),[] delete(),[], + , *=, move semantics
 template<class T> 
 Vector<T>::Vector():
     elemNum_        (0),
@@ -42,9 +143,7 @@ Vector<T>::Vector():
     canary2_        (CANARY_TWO),
     error_          (VECTOR_UNDERFLOW),
     hash_           (0)
-    {
-   //     fout << "Deafult constroctor called\n";
-    }
+    {}
 
 template<class T>
 Vector<T>::Vector(size_t size):
@@ -61,7 +160,6 @@ Vector<T>::Vector(size_t size):
         {
             error_ |= VECTOR_OUTTA_MEMORY;
         }
-//	fout << "Size constructor was called\n";
     }
 
 template <class T>
@@ -239,7 +337,6 @@ const T& Vector<T>::operator[] (const size_t index) const
 {
     if(index >= 0 && index < elemNum_)
     {
-        //QUESTION where do I use Hash() here?
         return data_[index];
     }
     else
@@ -279,7 +376,7 @@ const T Vector<T>::pop()
         std::cout << "pop() ERROR OCCURRED" << std::endl;
         this -> dump();
         //hash_ = Hash();
-        return  error_;
+        //return  error_; QUESTION:WHAT TO DO HERE?//throw something here
     }
     if(elemNum_ + BIG_DIFFER < capacity_ )
     {
@@ -288,8 +385,6 @@ const T Vector<T>::pop()
     }
     elemNum_--;
     hash_ = Hash();
-
-    //std::cout << "HASH is " << hash_ << std::endl;
     return data_[elemNum_];
 }
 
@@ -304,10 +399,11 @@ const T Vector<T>::peek()
 
     if(VectorOk() != VECTOR_OVERFLOW && VectorOk() != 0)
     {    
-	std::cout << "pop() ERROR OCCURRED" << std::endl;
+	std::cout << "peek() ERROR OCCURRED" << std::endl;
         this -> dump();
+
         //hash_ = Hash();
-        return  error_;
+        //return  error_; 
     }
     hash_ = Hash();
     return data_[elemNum_];
@@ -376,11 +472,10 @@ uint64_t  Vector<T>::Hash()
 
     for(size_t i = 0; i < elemNum_; i++)
     {
-        hash += (uint64_t)(data_[i]) * (uint64_t)(data_[i + 1]);
-
-	    hash += (uint64_t)&data_[i];
+       	//hash |= (uint64_t)(data_[i]) * (uint64_t)(data_[i + 1]); //QUESTION: it does not want to transform smth to int 
+	hash += (uint64_t)&data_[i];
     }
-
+    
     return hash;
 }
 
@@ -405,7 +500,6 @@ int Vector<T>::dump()
         cout <<   "OK!"    << endl;
     }
 
-    //cout << "  line is     " << __LINE__  << endl;
     cout << "  error_    = " << error_    << endl;
     cout << "  elemNum_  = " << elemNum_  << endl;
     cout << "  capacity_ = " << capacity_ << endl;
@@ -425,12 +519,4 @@ int Vector<T>::dump()
     return error_;
 }
 
-/*void* operator new[](size_t size, const char* msg,  int line)
-{
-    void* ptr = calloc(1, size);
-    fout << "new called " << "comment is " << msg << "line is" << line<< " \n";
-    printf("function is %s", msg);
-    return ptr;
-}
-*/
-
+#endif //VECTORZUI_VECTORZ_H
